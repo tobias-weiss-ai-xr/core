@@ -455,6 +455,27 @@ bool CImageFileFormatChecker::isHeifFile(BYTE* pBuffer, DWORD dwBytes)
 	return false;
 #endif
 }
+// JPEG XL: codestream signature 0xFF 0x0A, or ISOBMFF container with ftyp jxl / jxlc
+bool CImageFileFormatChecker::isJxlFile(BYTE* pBuffer, DWORD dwBytes)
+{
+	if (eFileType)
+		return false;
+
+	// JPEG XL bare codestream signature: 0xFF 0x0A
+	if (dwBytes >= 2 && pBuffer[0] == 0xFF && pBuffer[1] == 0x0A)
+		return true;
+
+	// JPEG XL ISOBMFF container signature: box_size(4) + "ftyp" + "jxl " or "jxlc"
+	if (dwBytes >= 16 && pBuffer[8] == 'f' && pBuffer[9] == 't'
+		&& pBuffer[10] == 'y' && pBuffer[11] == 'p')
+	{
+		if ((pBuffer[12] == 'j' && pBuffer[13] == 'x' && pBuffer[14] == 'l' && pBuffer[15] == ' ')
+		 || (pBuffer[12] == 'j' && pBuffer[13] == 'x' && pBuffer[14] == 'l' && pBuffer[15] == 'c'))
+			return true;
+	}
+
+	return false;
+}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CImageFileFormatChecker::isImageFile(const std::wstring& fileName)
 {
@@ -585,6 +606,10 @@ bool CImageFileFormatChecker::isImageFile(const std::wstring& fileName)
 	{
 		eFileType = _CXIMAGE_FORMAT_HEIF;
 	}
+	else if (isJxlFile(fileName))
+	{
+		eFileType = _CXIMAGE_FORMAT_JXL;
+	}
 	///////////////////////////////////////////////////////////////////////
 	delete [] buffer;
 
@@ -703,6 +728,10 @@ bool CImageFileFormatChecker::isImageFile(BYTE* buffer, DWORD sizeRead)
 	if (isHeifFile(buffer, sizeRead))
 	{
 		eFileType = _CXIMAGE_FORMAT_HEIF;
+	}
+	if (isJxlFile(buffer, sizeRead))
+	{
+		eFileType = _CXIMAGE_FORMAT_JXL;
 	}
     ///////////////////////////////////////////////////////////////////////
 	if (eFileType) return true;
@@ -828,6 +857,20 @@ bool CImageFileFormatChecker::isHeifFile(const std::wstring& fileName)
 #else
 	return false;
 #endif
+}
+bool CImageFileFormatChecker::isJxlFile(const std::wstring& fileName)
+{
+	// Check file extension for .jxl
+	std::wstring ext = fileName;
+	size_t pos = ext.rfind(L'.');
+	if (pos != std::wstring::npos)
+	{
+		for (size_t i = pos + 1; i < ext.size(); ++i)
+			ext[i] = (wchar_t)towlower(ext[i]);
+		if (ext.substr(pos) == L".jxl")
+			return true;
+	}
+	return false;
 }
 
 std::wstring CImageFileFormatChecker::DetectFormatByData(BYTE *Data, int DataSize)
