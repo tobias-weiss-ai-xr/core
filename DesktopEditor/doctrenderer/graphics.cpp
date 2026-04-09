@@ -689,9 +689,21 @@ namespace NSGraphics
 			}
 			else
 			{
+				// Wavy underline: approximated as polyline since renderer has no Bezier support
+				// Wave parameters similar to LibreOffice/Word spelling underlines
+				const double dWaveLen = 4.0;   // wavelength in points
+				const double dAmplitude = 1.0;  // amplitude in points
+				const double dStep = dWaveLen / 4.0; // quarter-wave step for smooth sine
+
 				m_pRenderer->put_PenSize(w);
 				m_pRenderer->PathCommandEnd();
 				m_pRenderer->PathCommandMoveTo(x0, y0);
+				for (double x = x0 + dStep; x <= x1; x += dStep)
+				{
+					double t = (x - x0) / dWaveLen * 2.0 * M_PI;
+					double y = y0 + dAmplitude * std::sin(t);
+					m_pRenderer->PathCommandLineTo(x, y);
+				}
 				m_pRenderer->PathCommandLineTo(x1, y0);
 				m_pRenderer->Stroke();
 			}
@@ -700,14 +712,28 @@ namespace NSGraphics
 		{
 			if(pMatrix->IsIdentity2())
 			{
+				// Integer grid + identity: drawHorLine cannot render a wave,
+				// so a straight line is used as fallback.
 				m_pRenderer->drawHorLine(1, y0, x0, x1, w);
 			}
 			else
 			{
+				// Wavy underline: approximated as polyline since renderer has no Bezier support
+				// Wave parameters similar to LibreOffice/Word spelling underlines
+				const double dWaveLen = 4.0;   // wavelength in points
+				const double dAmplitude = 1.0;  // amplitude in points
+				const double dStep = dWaveLen / 4.0; // quarter-wave step for smooth sine
+
 				m_pRenderer->put_IntegerGrid(false);
 				m_pRenderer->put_PenSize(w);
 				m_pRenderer->PathCommandEnd();
 				m_pRenderer->PathCommandMoveTo(x0, y0);
+				for (double x = x0 + dStep; x <= x1; x += dStep)
+				{
+					double t = (x - x0) / dWaveLen * 2.0 * M_PI;
+					double y = y0 + dAmplitude * std::sin(t);
+					m_pRenderer->PathCommandLineTo(x, y);
+				}
 				m_pRenderer->PathCommandLineTo(x1, y0);
 				m_pRenderer->Stroke();
 				m_pRenderer->put_IntegerGrid(true);

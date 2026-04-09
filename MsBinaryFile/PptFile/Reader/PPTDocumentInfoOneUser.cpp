@@ -200,6 +200,7 @@ void CPPTUserInfo::DecryptStream(POLE::Stream* pStream, int block)
     pStream->read(data_stream, size);
     m_pDecryptor->Decrypt((char*)data_stream, size, block);
     pStreamTmp->write(data_stream, size);
+    delete[] data_stream;
     pStreamTmp->flush();
     pStreamTmp->seek(0);
 
