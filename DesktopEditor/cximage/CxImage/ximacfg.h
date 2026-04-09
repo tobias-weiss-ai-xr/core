@@ -51,9 +51,15 @@
 #else
 #define CXIMAGE_SUPPORT_HEIF 0
 #endif
+#ifdef SUPPORT_LIB_JXL_SOURCES
+#define CXIMAGE_SUPPORT_JXL 1
+#else
+#define CXIMAGE_SUPPORT_JXL 0
+#endif
 #define CXIMAGE_SUPPORT_RAW 1
 #else
 #define CXIMAGE_SUPPORT_HEIF 0
+#define CXIMAGE_SUPPORT_JXL 0
 #define CXIMAGE_SUPPORT_RAW 0
 #endif
 
